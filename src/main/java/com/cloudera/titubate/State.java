@@ -86,7 +86,7 @@ public class State {
    * @return value as integer
    * @throws ClassCastException if the value object is not an integer
    */
-  public Integer getInteger(String key) {
+  public Integer getInt(String key) {
     return (Integer) stateMap.get(key);
   }
 

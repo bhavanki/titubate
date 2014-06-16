@@ -19,16 +19,32 @@ package com.cloudera.titubate;
 import java.io.File;
 import java.util.Map;
 
+/**
+ * A keeper of {@link Node}s, indexed by ID. This class is not thread-safe.
+ */
 public class NodeKeeper {
     private final Map<String,Node> nodes = new java.util.HashMap<String,Node>();
     private final File moduleDir;
 
+    /**
+     * Creates a new keeper.
+     *
+     * @param moduleDir directory where XML module definitions reside
+     */
     public NodeKeeper(File moduleDir) {
         this.moduleDir = moduleDir;
     }
 
     /**
-     * Gets a node. If it does not already exist, it is created.
+     * Gets a node. If it does not already exist, it is created. The following
+     * sorts of node IDs are supported for node creation.<p>
+     *
+     * <ul>
+     * <li><i>*</i>.xml - file name for an XML module definition</li>
+     * <li>END - a {@link DummyNode} with name "END"</li>
+     * <li>anything else - the name of a {@link CallableAction} implementation
+     * with a no-argument constructor</li>
+     * </ul>
      *
      * @param id node ID
      * @return node specified by id
@@ -66,9 +82,21 @@ public class NodeKeeper {
         return node;
     }
 
+    /**
+     * Checks if a node with the given ID already exists.
+     *
+     * @param id node ID
+     * @return true if node exists
+     */
     public boolean hasNode(String id) {
         return nodes.containsKey(id);
     }
+    /**
+     * Adds a node. Any node already created with the given ID is discarded.
+     *
+     * @param id node ID
+     * @param n node
+     */
     public void addNode(String id, Node n) {
         nodes.put(id, n);
     }
