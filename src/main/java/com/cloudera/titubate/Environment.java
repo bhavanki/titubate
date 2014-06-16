@@ -38,6 +38,12 @@ public class Environment {
   private final Map<String, Object> env;
 
   /**
+   * Creates an empty environment.
+   */
+  public Environment() {
+    env = Collections.emptyMap();
+  }
+  /**
    * Creates a new environment, taking data from the given map.
    *
    * @param env map of environment variable names to values
