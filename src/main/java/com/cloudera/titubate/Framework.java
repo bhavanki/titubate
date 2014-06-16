@@ -121,7 +121,7 @@ public class Framework {
                       (opts.testId != null ? opts.testId :
                        UUID.randomUUID().toString()));
 
-    Environment env = new Environment(props);  // FIXME what about int/long?
+    Environment env = new Environment(props);
     NodeKeeper nodeKeeper = new NodeKeeper(new File(opts.configDir, MODULE_DIR));
     new Framework(nodeKeeper).setConfigDir(opts.configDir).run(opts.graph, env);
   }
