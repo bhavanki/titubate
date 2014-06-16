@@ -25,7 +25,8 @@ import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 
 /**
- * A read-only environment that is available for random walk tests.
+ * A read-only environment that is available for random walk tests. All keys
+ * and values are strings.
  */
 public class Environment {
   private static final Logger LOG = LoggerFactory.getLogger(Environment.class);
@@ -35,7 +36,7 @@ public class Environment {
    */
   public static final String KEY_TEST_ID = "_test_id";
 
-  private final Map<String, Object> env;
+  private final Map<String, String> env;
 
   /**
    * Creates an empty environment.
@@ -48,8 +49,8 @@ public class Environment {
    *
    * @param env map of environment variable names to values
    */
-  public Environment(Map<String, ?> env) {
-    this.env = Collections.unmodifiableMap(new HashMap<String, Object>(env));
+  public Environment(Map<String, String> env) {
+    this.env = Collections.unmodifiableMap(new HashMap<String, String>(env));
   }
   /**
    * Creates a new environment, taking data from the given properties.
@@ -57,9 +58,9 @@ public class Environment {
    * @param env properties to use as environment variables
    */
   public Environment(Properties p) {
-    Map<String, Object> m = new HashMap<String, Object>();
+    Map<String, String> m = new HashMap<String, String>();
     for (Map.Entry<Object, Object> e : p.entrySet()) {
-      m.put(e.getKey().toString(), e.getValue());
+      m.put(e.getKey().toString(), e.getValue().toString());
     }
     this.env = Collections.unmodifiableMap(m);
   }
@@ -79,38 +80,36 @@ public class Environment {
    * @param key key
    * @return value, or null if not present
    */
-  public Object get(String key) {
+  public String get(String key) {
     return env.get(key);
   }
   /**
-   * Gets an integer value from this environment for the given key.
+   * Gets a value from this environment for the given key, parsed as an int.
    *
    * @param key key
    * @return integer value, or null if not present
-   * @throws ClassCastException if value is not an <code>Integer</code>
+   * @throws NumberFormatException if value is not an integer string
    */
   public Integer getInt(String key) {
-    return (Integer) get(key);
+    String value = get(key);
+    if (value == null) {
+      return null;
+    }
+    return Integer.parseInt(value);
   }
   /**
-   * Gets a long value from this environment for the given key.
+   * Gets a value from this environment for the given key, parsed as a long.
    *
    * @param key key
    * @return long value, or null if not present
-   * @throws ClassCastException if value is not a <code>Long</code>
+   * @throws NumberFormatException if value is not a long string
    */
   public Long getLong(String key) {
-    return (Long) get(key);
-  }
-  /**
-   * Gets a string value from this environment for the given key.
-   *
-   * @param key key
-   * @return string value, or null if not present
-   * @throws ClassCastException if value is not a <code>String</code>
-   */
-  public String getString(String key) {
-    return (String) get(key);
+    String value = get(key);
+    if (value == null) {
+      return null;
+    }
+    return Long.parseLong(value);
   }
 
   public String dump() {

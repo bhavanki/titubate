@@ -52,16 +52,12 @@ public class EnvironmentTest {
         assertEquals("dong", env.get("ding"));
         assertNull(env.get("zip"));
         assertNull(env.get(null));
-        assertEquals("bar", env.getString("foo"));
-        assertEquals("dong", env.getString("ding"));
-        assertNull(env.getString("zip"));
-        assertNull(env.getString(null));
     }
 
     @Test public void testNumerics() {
-        Map<String, Object> m = new java.util.HashMap<String, Object>();
-        m.put("integer", 42);
-        m.put("long", 187L);
+        Map<String, String> m = new java.util.HashMap<String, String>();
+        m.put("integer", "42");
+        m.put("long", "187");
         env = new Environment(m);
         assertEquals(Integer.valueOf(42), env.getInt("integer"));
         assertEquals(Long.valueOf(187L), env.getLong("long"));
