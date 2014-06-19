@@ -21,7 +21,7 @@ import java.util.Properties;
 /**
  * A node that runs a <code>CallableAction</code> when visited.
  */
-public class CallableNode extends Node {
+public class CallableNode extends Node implements Timed {
     private final CallableAction action;
     /**
      * Creates a new node.
