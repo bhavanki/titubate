@@ -48,6 +48,11 @@ public class Module extends Node {
 
   private static class Edge {
     Edge(String nodeId, int weight) {
+      if (weight <= 0) {
+        throw new IllegalArgumentException("Node " + nodeId +
+                                           " has non-positive weight " +
+                                           weight);
+      }
       this.nodeId = nodeId;
       this.weight = weight;
     }
@@ -71,9 +76,13 @@ public class Module extends Node {
     /**
      * Chooses a random neighbor node.
      *
-     * @return neighbor node ID, or null if no edges
+     * @return neighbor node ID
+     * @throws IllegalStateException if there are no edges in the list
      */
-    private String randomNeighbor() {
+    String randomNeighbor() {
+      if (totalWeight == 0) {
+        throw new IllegalStateException("No edges in adjacency list");
+      }
       int randNum = random.nextInt(totalWeight) + 1;
       String nodeId = null;
       int sum = 0;
@@ -97,9 +106,9 @@ public class Module extends Node {
   private Fixture fixture = null;
   private final NodeKeeper nodeKeeper;
 
-  public Module(String source, Map<String, AdjList> adjMap, Map<String, Properties> nodeProps,
-                Map<String, Set<String>> aliasMap, Map<String, String> prefixes,
-                String initNodeId, Fixture fixture, NodeKeeper nodeKeeper) {
+  Module(String source, Map<String, AdjList> adjMap, Map<String, Properties> nodeProps,
+         Map<String, Set<String>> aliasMap, Map<String, String> prefixes,
+         String initNodeId, Fixture fixture, NodeKeeper nodeKeeper) {
     this.source = source;
     this.adjMap = adjMap;
     this.nodeProps = nodeProps;
@@ -155,12 +164,7 @@ public class Module extends Node {
     doVisit(initNodeId, env, state);
 
     // Update aliases.
-    Set<String> aliases;
-    if ((aliases = aliasMap.get(initNodeId)) != null) {
-      for (String alias : aliases) {
-        ((AliasNode) getNode(alias)).setTargetId(this, initNodeId);
-      }
-    }
+    updateAliases(initNodeId);
 
     int numHops = 0;
     long maxMs = maxSec * 1000L;
@@ -176,7 +180,7 @@ public class Module extends Node {
         break;
       }
       // check if maxHops was reached
-      if (numHops > maxHops) {
+      if (numHops >= maxHops) {
         LOG.debug("Reached maxHops = " + maxHops);
         break;
       }
@@ -196,13 +200,12 @@ public class Module extends Node {
       }
 
       // Visit the node.
-      Properties nextNodeProps = getProps(nextNodeId);
       try {
         doVisit(nextNodeId, env, state);
       } catch (Exception e) {
         LOG.debug("Exception occured at: " + System.currentTimeMillis());
         LOG.debug("Properties for node: " + nextNodeId);
-        LOG.debug(nextNodeProps.toString());
+        LOG.debug(getProps(nextNodeId).toString());
         LOG.debug("Environment");
         LOG.debug(env.dump());
         LOG.debug("State information");
@@ -243,6 +246,9 @@ public class Module extends Node {
     }
   }
   void updateAliases(String nodeId) {
+    if (aliasMap == null) {
+      return;
+    }
     Set<String> aliases = aliasMap.get(nodeId);
     if (aliases != null) {
       for (String alias : aliases) {
@@ -302,7 +308,10 @@ public class Module extends Node {
     return nodeKeeper.getNode(prefixExpander.expand(id));
   }
 
-  private Properties getProps(String nodeId) {
+  Properties getProps(String nodeId) {
+    if (nodeProps == null) {
+      nodeProps = new HashMap<String, Properties>();
+    }
     if (!nodeProps.containsKey(nodeId)) {
       nodeProps.put(nodeId, new Properties());
     }
