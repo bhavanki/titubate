@@ -28,7 +28,11 @@ public class PrefixExpander {
     private final Map<String,String> expansions;
 
     public PrefixExpander(Map<String, String> expansions) {
-        this.expansions = Collections.unmodifiableMap(new java.util.HashMap<String, String>(expansions));
+        if (expansions == null) {
+            this.expansions = Collections.emptyMap();
+        } else {
+            this.expansions = Collections.unmodifiableMap(new java.util.HashMap<String, String>(expansions));
+        }
     }
 
     public String expand(String s) {
