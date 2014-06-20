@@ -38,6 +38,10 @@ public class AdjListTest {
         for (int i = 1; i <= numEdges; i++) {
             l.addEdge(Integer.toString(i), i);
         }
+        assertEquals(numEdges, l.size());
+        for (int i = 1; i <= numEdges; i++) {
+            assertEquals(i, l.weight(Integer.toString(i)));
+        }
         boolean chosen[] = new boolean[numEdges];
         for (int i = 0; i < MAX_TRIES; i++) {
             String nextId = l.randomNeighbor();

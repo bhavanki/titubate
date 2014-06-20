@@ -61,6 +61,18 @@ public class Module extends Node {
     private List<Edge> edges = new ArrayList<Edge>();
     private int totalWeight = 0;
 
+    int size() {
+      return edges.size();
+    }
+    int weight(String nodeId) {
+      for (Edge e : edges) {
+        if (e.nodeId.equals(nodeId)) {
+          return e.weight;
+        }
+      }
+      return -1;
+    }
+
     /**
      * Adds an edge to this list.
      */
@@ -111,6 +123,16 @@ public class Module extends Node {
     this.initNodeId = initNodeId;
     this.fixture = fixture;
     this.nodeKeeper = nodeKeeper;
+  }
+
+  Map<String, AdjList> getAdjacencyMap() {
+    return adjMap;
+  }
+  Fixture getFixture() {
+    return fixture;
+  }
+  String getInitNodeId() {
+    return initNodeId;
   }
 
   @Override

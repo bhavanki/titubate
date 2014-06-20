@@ -72,11 +72,7 @@ public class XmlModuleFactory {
         NodeList nodelist = d.getDocumentElement().getElementsByTagName("package");
         for (int i = 0; i < nodelist.getLength(); i++) {
           Element el = (Element) nodelist.item(i);
-          String value = el.getAttribute("value");
-          if (!value.endsWith(".")) {
-            value = value.concat(".");
-          }
-          prefixes.put(el.getAttribute("prefix"), value);
+          prefixes.put(el.getAttribute("prefix"), el.getAttribute("value"));
         }
         PrefixExpander prefixExpander = new PrefixExpander(prefixes);
 
@@ -97,16 +93,17 @@ public class XmlModuleFactory {
         Properties initProps = new Properties();
         String attr = initEl.getAttribute("maxHops");
         if (attr != null)
-            initProps.setProperty("maxHops", attr);
+            initProps.setProperty(Module.PROPERTY_MAX_HOPS, attr);
         attr = initEl.getAttribute("maxSec");
         if (attr != null)
-            initProps.setProperty("maxSec", attr);
+            initProps.setProperty(Module.PROPERTY_MAX_SECONDS, attr);
         attr = initEl.getAttribute("teardown");
         if (attr != null)
-            initProps.setProperty("teardown", attr);
+            initProps.setProperty(Module.PROPERTY_TEARDOWN, attr);
         nodeProps.put(Module.INIT_NODE_ID, initProps);
 
         // parse all nodes
+        NodeFactory nodeFactory = new NodeFactory(nodeKeeper, prefixExpander);
         nodelist = d.getDocumentElement().getElementsByTagName("node");
         for (int i = 0; i < nodelist.getLength(); i++) {
             Element nodeEl = (Element) nodelist.item(i);
@@ -118,13 +115,13 @@ public class XmlModuleFactory {
                 throw new Exception("Module already contains node with ID " + id);
             }
             String src = nodeEl.getAttribute("src");
-            createNode(nodeKeeper, prefixExpander, id, src);
+            nodeFactory.createNode(id, src);
 
             // set some attributes in properties for later use
             Properties props = new Properties();
-            props.setProperty("maxHops", nodeEl.getAttribute("maxHops"));
-            props.setProperty("maxSec", nodeEl.getAttribute("maxSec"));
-            props.setProperty("teardown", nodeEl.getAttribute("teardown"));
+            props.setProperty(Module.PROPERTY_MAX_HOPS, nodeEl.getAttribute("maxHops"));
+            props.setProperty(Module.PROPERTY_MAX_SECONDS, nodeEl.getAttribute("maxSec"));
+            props.setProperty(Module.PROPERTY_TEARDOWN, nodeEl.getAttribute("teardown"));
 
             // parse aliases
             NodeList aliaslist = nodeEl.getElementsByTagName("alias");
@@ -135,7 +132,7 @@ public class XmlModuleFactory {
                 }
                 String key = "alias." + propEl.getAttribute("name");
                 AliasNode aliasNode = (AliasNode)
-                    createNode(nodeKeeper, prefixExpander, key, null);
+                    nodeFactory.createNode(key, null);
                 aliasNode.setTargetId(id);
             }
 
@@ -147,7 +144,9 @@ public class XmlModuleFactory {
                     throw new Exception("Node " + id + " has property with no key or value");
                 }
                 String key = propEl.getAttribute("key");
-                if (key.equals("maxHops") || key.equals("maxSec") || key.equals("teardown")) {
+                if (key.equals(Module.PROPERTY_MAX_HOPS) ||
+                    key.equals(Module.PROPERTY_MAX_SECONDS) ||
+                    key.equals(Module.PROPERTY_TEARDOWN)) {
                     throw new Exception("The following property can only be set in attributes: " + key);
                 }
                 props.setProperty(key, propEl.getAttribute("value"));
@@ -174,31 +173,5 @@ public class XmlModuleFactory {
 
         return new Module(xmlFile.toString(), adjMap, nodeProps, prefixes, initNodeId,
                           fixture, nodeKeeper);
-    }
-
-    Node createNode(NodeKeeper nodeKeeper, PrefixExpander prefixExpander, String id, String src) throws Exception {
-        if (id.equalsIgnoreCase("END") || id.startsWith("dummy")) {
-            if (!nodeKeeper.hasNode(id)) {
-                Node n = new DummyNode(id);
-                nodeKeeper.addNode(id, n);
-                return n;
-            }
-            return nodeKeeper.getNode(id);
-        }
-
-        if (id.startsWith("alias")) {
-            if (!nodeKeeper.hasNode(id)) {
-                Node n = new AliasNode(id);
-                nodeKeeper.addNode(id, n);
-                return n;
-            }
-            return nodeKeeper.getNode(id);
-        }
-
-        if (src == null || src.isEmpty()) {
-            return nodeKeeper.getNode(prefixExpander.expand(id));
-        } else {
-            return nodeKeeper.getNode(prefixExpander.expand(src));
-        }
     }
 }
