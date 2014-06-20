@@ -84,22 +84,27 @@ public class ModuleTest {
     }
 
     @Test public void testThreeNodeGraph() throws Exception {
-        testThreeNodeGraph(false, false, false, true);
+        testThreeNodeGraph(false, false, false, true, false);
     }
     @Test public void testLimitHops() throws Exception {
-        testThreeNodeGraph(true, false, false, true);
+        testThreeNodeGraph(true, false, false, true, false);
     }
     @Test public void testLimitTime() throws Exception {
-        testThreeNodeGraph(false, true, false, true);
+        testThreeNodeGraph(false, true, false, true, false);
     }
     @Test public void testFixture() throws Exception {
-        testThreeNodeGraph(false, false, true, true);
+        testThreeNodeGraph(false, false, true, true, false);
     }
     @Test public void testFixture_NoTearDown() throws Exception {
-        testThreeNodeGraph(false, false, true, false);
+        testThreeNodeGraph(false, false, true, false, false);
+    }
+    @Test(expected=NodeException.class)
+    public void testNodeFailure() throws Exception {
+        testThreeNodeGraph(false, false, false, false, true);
     }
     private void testThreeNodeGraph(boolean limitHops, boolean limitTime,
-                                    boolean useFixture, boolean doTearDown)
+                                    boolean useFixture, boolean doTearDown,
+                                    boolean failNode)
         throws Exception {
         String n1Id = "node1";
         AdjList l = new AdjList();
@@ -130,7 +135,7 @@ public class ModuleTest {
         }
         expect(nk.getNode(n1Id)).andReturn(n1).anyTimes();
         Node end = new DummyNode("END");
-        if (!limitHops && !limitTime) {
+        if (!limitHops && !limitTime && !failNode) {
             expect(nk.getNode("END")).andReturn(end).anyTimes();
         }
         replay(nk);
@@ -139,6 +144,9 @@ public class ModuleTest {
         replay(n0);
         if (!limitTime) {
             n1.visit(eq(env), eq(state), anyObject(Properties.class));
+            if (failNode) {
+                expectLastCall().andThrow(new IllegalStateException());
+            }
             replay(n1);
         }
 
@@ -166,14 +174,17 @@ public class ModuleTest {
         }
         mb.nodeProps(nodeProps);
 
-        mb.build(INIT_NODE_ID).visit(env, state, new Properties());
-        verify(n0);
-        if (!limitTime) {
-            verify(n1);
-        }
+        try {
+            mb.build(INIT_NODE_ID).visit(env, state, new Properties());
+        } finally {
+            verify(n0);
+            if (!limitTime) {
+                verify(n1);
+            }
 
-        if (useFixture) {
-            verify(fixture);
+            if (useFixture) {
+                verify(fixture);
+            }
         }
     }
 }

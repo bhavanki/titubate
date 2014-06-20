@@ -25,12 +25,10 @@ import java.util.Properties;
 public class AliasNode extends Node {
 
     private final String id;
-    private Node target;
     private String targetId;
 
     public AliasNode(String id) {
       this.id = id;
-      target = null;
       targetId = null;
     }
 
@@ -51,23 +49,12 @@ public class AliasNode extends Node {
     }
 
     /**
-     * Sets the target node for this alias node.
+     * Sets the ID of the target node for this alias node.
      *
-     * @param module module containing target node
      * @param targetId target node ID
      */
-    public void setTargetId(Module module, String targetId) {
+    public void setTargetId(String targetId) {
       this.targetId = targetId;
-      target = module.getNode(targetId);
-    }
-
-    /**
-     * Gets the target node for this alias node.
-     *
-     * @return target node
-     */
-    public Node getTarget() {
-        return target;
     }
     /**
      * Gets the ID of the target node for this alias node.

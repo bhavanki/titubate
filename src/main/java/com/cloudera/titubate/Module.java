@@ -163,9 +163,6 @@ public class Module extends Node {
     // Visit the initialization node.
     doVisit(initNodeId, env, state);
 
-    // Update aliases.
-    updateAliases(initNodeId);
-
     int numHops = 0;
     long maxMs = maxSec * 1000L;
     long startTime = System.currentTimeMillis();
@@ -213,9 +210,6 @@ public class Module extends Node {
         throw new NodeException("Error running node " + nextNodeId, e);
       }
 
-      // Update aliases for the current ID.
-      updateAliases(curNodeId);
-
       // Move position to the next node.
       curNodeId = nextNodeId;
     }
@@ -242,17 +236,6 @@ public class Module extends Node {
     } finally {
       if (timed) {
         stopTimer(n);
-      }
-    }
-  }
-  void updateAliases(String nodeId) {
-    if (aliasMap == null) {
-      return;
-    }
-    Set<String> aliases = aliasMap.get(nodeId);
-    if (aliases != null) {
-      for (String alias : aliases) {
-        ((AliasNode) getNode(alias)).setTargetId(this, nodeId);
       }
     }
   }

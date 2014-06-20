@@ -138,7 +138,9 @@ public class XmlModuleFactory {
                 }
                 String key = "alias." + propEl.getAttribute("name");
                 aliases.add(key);
-                createNode(nodeKeeper, prefixExpander, key, null);
+                AliasNode aliasNode = (AliasNode)
+                    createNode(nodeKeeper, prefixExpander, key, null);
+                aliasNode.setTargetId(id);
             }
             if (aliases.size() > 0) {
                 aliasMap.put(id, aliases);
