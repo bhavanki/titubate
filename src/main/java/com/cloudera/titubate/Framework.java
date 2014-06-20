@@ -21,6 +21,7 @@ import com.beust.jcommander.Parameter;
 import com.beust.jcommander.ParameterException;
 import java.io.File;
 import java.io.FileInputStream;
+import java.io.IOException;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
@@ -37,15 +38,9 @@ public class Framework {
   private static final String MODULE_DIR = "modules";
 
   private final NodeKeeper nodeKeeper;
-  private String configDir = null;
 
   public Framework(NodeKeeper nodeKeeper) {
     this.nodeKeeper = nodeKeeper;
-  }
-
-  public Framework setConfigDir(String configDir) {
-    this.configDir = configDir;
-    return this;
   }
 
   public void run(String graph, Environment env) {
@@ -61,7 +56,7 @@ public class Framework {
   public void run(String graph, Environment env, State state) {
     try {
       Node node = nodeKeeper.getNode(graph);
-      node.visit(env, state, new Properties());  // wait what?
+      node.visit(env, state, new Properties());  // no incoming properties
     } catch (NodeException e) {
       LOG.error("Error during random walk", e);
     }
@@ -105,24 +100,35 @@ public class Framework {
     }
   }
 
+  static Environment loadEnvironment(File f, String testId) throws IOException {
+    Properties props = new Properties();
+    FileInputStream fis = null;
+    try {
+      fis = new FileInputStream(f);
+      props.load(fis);
+    } finally {
+      if (fis != null) {
+        fis.close();
+      }
+    }
+
+    props.setProperty(Environment.KEY_TEST_ID,
+                      (testId != null ? testId :
+                       UUID.randomUUID().toString()));
+
+    return new Environment(props);
+  }
+
   public static void main(String[] args) throws Exception {
     Opts opts = new Opts();
     if (!opts.parseArgs(Framework.class.getName(), args)) {
       return;
     }
 
-    Properties props = new Properties();
-    FileInputStream fis =
-      new FileInputStream(new File(opts.configDir, opts.configFileName));
-    props.load(fis);
-    fis.close();
+    Environment env =
+      loadEnvironment(new File(opts.configDir, opts.configFileName), opts.testId);
 
-    props.setProperty(Environment.KEY_TEST_ID,
-                      (opts.testId != null ? opts.testId :
-                       UUID.randomUUID().toString()));
-
-    Environment env = new Environment(props);
     NodeKeeper nodeKeeper = new NodeKeeper(new File(opts.configDir, MODULE_DIR));
-    new Framework(nodeKeeper).setConfigDir(opts.configDir).run(opts.graph, env);
+    new Framework(nodeKeeper).run(opts.graph, env);
   }
 }
