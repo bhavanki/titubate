@@ -34,7 +34,7 @@ public class PrefixExpander {
         } else {
             this.expansions = Collections.unmodifiableMap(new java.util.HashMap<String, String>(expansions));
         }
-        noExpansions = expansions.isEmpty();
+        noExpansions = this.expansions.isEmpty();
     }
 
     public String expand(String s) {
