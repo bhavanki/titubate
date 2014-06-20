@@ -23,7 +23,6 @@ import java.util.UUID;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
-import org.easymock.Capture;
 import static org.easymock.EasyMock.*;
 
 public class FrameworkTest {
