@@ -26,6 +26,7 @@ public class PrefixExpander {
     private static final Logger LOG = LoggerFactory.getLogger(PrefixExpander.class);
 
     private final Map<String,String> expansions;
+    private final boolean noExpansions;
 
     public PrefixExpander(Map<String, String> expansions) {
         if (expansions == null) {
@@ -33,9 +34,13 @@ public class PrefixExpander {
         } else {
             this.expansions = Collections.unmodifiableMap(new java.util.HashMap<String, String>(expansions));
         }
+        noExpansions = expansions.isEmpty();
     }
 
     public String expand(String s) {
+        if (noExpansions) {
+            return s;
+        }
         if (s.endsWith(".xml")) {
             return s;
         }
