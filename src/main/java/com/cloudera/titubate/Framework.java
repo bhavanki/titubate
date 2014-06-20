@@ -22,15 +22,11 @@ import com.beust.jcommander.ParameterException;
 import java.io.File;
 import java.io.FileInputStream;
 import java.io.IOException;
-import java.util.HashMap;
-import java.util.Map;
 import java.util.Properties;
 import java.util.UUID;
 
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
-
-import com.beust.jcommander.Parameter;
 
 public class Framework {
   private static final Logger LOG = LoggerFactory.getLogger(Framework.class);
