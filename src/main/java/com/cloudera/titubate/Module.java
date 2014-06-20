@@ -16,16 +16,12 @@
  */
 package com.cloudera.titubate;
 
-import java.io.File;
 import java.util.ArrayList;
-import java.util.Collection;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Map;
 import java.util.Properties;
 import java.util.Random;
-import java.util.Set;
-import java.util.TreeSet;
 import java.util.concurrent.Executors;
 import java.util.concurrent.ExecutorService;
 import java.util.concurrent.Future;
@@ -100,19 +96,17 @@ public class Module extends Node {
   private final String source;
   private Map<String,AdjList> adjMap;
   private Map<String, Properties> nodeProps;
-  private Map<String,Set<String>> aliasMap;
   private PrefixExpander prefixExpander;
   private String initNodeId;
   private Fixture fixture = null;
   private final NodeKeeper nodeKeeper;
 
   Module(String source, Map<String, AdjList> adjMap, Map<String, Properties> nodeProps,
-         Map<String, Set<String>> aliasMap, Map<String, String> prefixes,
-         String initNodeId, Fixture fixture, NodeKeeper nodeKeeper) {
+         Map<String, String> prefixes, String initNodeId, Fixture fixture,
+         NodeKeeper nodeKeeper) {
     this.source = source;
     this.adjMap = adjMap;
     this.nodeProps = nodeProps;
-    this.aliasMap = aliasMap;
     prefixExpander = new PrefixExpander(prefixes);
     this.initNodeId = initNodeId;
     this.fixture = fixture;
@@ -215,7 +209,7 @@ public class Module extends Node {
     }
 
     // If this module has a fixture, call its tearDown method now.
-    if (teardown && (fixture != null)) {
+    if (teardown && fixture != null) {
       LOG.debug("Tearing down module");
       try {
         fixture.tearDown(env, state);

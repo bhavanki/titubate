@@ -19,15 +19,12 @@ package com.cloudera.titubate;
 import com.cloudera.titubate.Module.AdjList;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
 
 public class ModuleBuilder {
   private final String source;
   private Map<String,AdjList> adjMap;
   private Map<String, Properties> nodeProps;
-  private Map<String,Set<String>> aliasMap;
   private Map<String,String> prefixes;
-  private String initNodeId;
   private Fixture fixture = null;
   private final NodeKeeper nodeKeeper;
 
@@ -47,10 +44,6 @@ public class ModuleBuilder {
     this.nodeProps = nodeProps;
     return this;
   }
-  public ModuleBuilder aliasMap(Map<String,Set<String>> aliasMap) {
-    this.aliasMap = aliasMap;
-    return this;
-  }
   public ModuleBuilder prefixes(Map<String,String> prefixes) {
     this.prefixes = prefixes;
     return this;
@@ -62,7 +55,7 @@ public class ModuleBuilder {
 
   public Module build(String initNodeId) {
     verify();
-    return new Module(source, adjMap, nodeProps, aliasMap, prefixes, initNodeId,
+    return new Module(source, adjMap, nodeProps, prefixes, initNodeId,
                       fixture, nodeKeeper);
   }
 

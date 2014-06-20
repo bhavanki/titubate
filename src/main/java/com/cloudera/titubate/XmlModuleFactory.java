@@ -21,8 +21,6 @@ import java.io.File;
 import java.util.HashMap;
 import java.util.Map;
 import java.util.Properties;
-import java.util.Set;
-import java.util.TreeSet;
 import javax.xml.XMLConstants;
 import javax.xml.parsers.DocumentBuilder;
 import javax.xml.parsers.DocumentBuilderFactory;
@@ -38,6 +36,7 @@ import org.w3c.dom.NodeList;
 import org.xml.sax.SAXException;
 
 public class XmlModuleFactory {
+    private static final Logger LOG = LoggerFactory.getLogger(XmlModuleFactory.class);
     private static final Schema moduleSchema;
 
     static {
@@ -69,7 +68,7 @@ public class XmlModuleFactory {
         }
 
         // parse packages
-        Map<String, String> prefixes = new java.util.HashMap<String, String>();  // <======
+        Map<String, String> prefixes = new HashMap<String, String>();  // <======
         NodeList nodelist = d.getDocumentElement().getElementsByTagName("package");
         for (int i = 0; i < nodelist.getLength(); i++) {
           Element el = (Element) nodelist.item(i);
@@ -89,9 +88,8 @@ public class XmlModuleFactory {
           fixture = (Fixture) Class.forName(prefixExpander.expand(fixtureEl.getAttribute("id"))).newInstance();
         }
 
-        Map<String, AdjList> adjMap = new java.util.HashMap<String, AdjList>();  // <======
-        Map<String, Properties> nodeProps = new java.util.HashMap<String, Properties>();  // <======
-        Map<String, Set<String>> aliasMap = new java.util.HashMap<String, Set<String>>();  // <======
+        Map<String, AdjList> adjMap = new HashMap<String, AdjList>();  // <======
+        Map<String, Properties> nodeProps = new HashMap<String, Properties>();  // <======
 
         // parse initial node
         Element initEl = (Element) d.getDocumentElement().getElementsByTagName("init").item(0);
@@ -130,20 +128,15 @@ public class XmlModuleFactory {
 
             // parse aliases
             NodeList aliaslist = nodeEl.getElementsByTagName("alias");
-            Set<String> aliases = new TreeSet<String>();
             for (int j = 0; j < aliaslist.getLength(); j++) {
                 Element propEl = (Element) aliaslist.item(j);
                 if (!propEl.hasAttribute("name")) {
                     throw new Exception("Node " + id + " has alias with no identifying name");
                 }
                 String key = "alias." + propEl.getAttribute("name");
-                aliases.add(key);
                 AliasNode aliasNode = (AliasNode)
                     createNode(nodeKeeper, prefixExpander, key, null);
                 aliasNode.setTargetId(id);
-            }
-            if (aliases.size() > 0) {
-                aliasMap.put(id, aliases);
             }
 
             // parse properties of nodes
@@ -179,7 +172,7 @@ public class XmlModuleFactory {
             }
         }  // parsing nodes
 
-        return new Module(xmlFile.toString(), adjMap, nodeProps, aliasMap, prefixes, initNodeId,
+        return new Module(xmlFile.toString(), adjMap, nodeProps, prefixes, initNodeId,
                           fixture, nodeKeeper);
     }
 
@@ -202,7 +195,6 @@ public class XmlModuleFactory {
             return nodeKeeper.getNode(id);
         }
 
-        Node node;
         if (src == null || src.isEmpty()) {
             return nodeKeeper.getNode(prefixExpander.expand(id));
         } else {
