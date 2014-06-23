@@ -239,6 +239,8 @@ public class Module extends Node {
         throw new NodeException("Exception in fixture teardown", e);
       }
     }
+
+    timerES.shutdown();
   }
 
   void doVisit(String nodeId, Environment env, State state) throws NodeException {
