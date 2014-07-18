@@ -8,6 +8,14 @@ actions, with weighted edges connecting each action with possible following
 actions. A transition from one node to the next is taken on a random edge,
 selected in accordance with the edge weights.
 
+This project's code is refactored from [Apache Accumulo][accumulo].
+
+## In Progress
+
+This project is still a work in progress, so don't start relying too heavily
+on it just yet. In particular, the Java package for the code will probably
+change, based on feedback I get on what's appropriate.
+
 ## Modules
 
 A randomwalk test graph is called a *module*. The easiest way to define a
@@ -135,3 +143,4 @@ java -classpath titubate-0.1.0-SNAPSHOT.jar:lib/* \
 ```
 
 [def]: http://en.wiktionary.org/wiki/titubate
+[accumulo]: http://accumulo.apache.org/
