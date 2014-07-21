@@ -27,7 +27,15 @@ import java.util.Map;
  */
 public class State {
 
-  private HashMap<String,Object> stateMap = new HashMap<String,Object>();
+  private final HashMap<String,Object> stateMap;
+
+  public State() {
+    stateMap = new HashMap<String,Object>();
+  }
+
+  public State(State original) {
+    stateMap = new HashMap<String,Object>(original.stateMap);
+  }
 
   /**
    * Sets a state object.
@@ -99,6 +107,16 @@ public class State {
    */
   public Long getLong(String key) {
     return (Long) stateMap.get(key);
+  }
+
+  /**
+   * Gets this state's data as a map. Changes to the returned map do not
+   * reflect back into this state.
+   *
+   * @return map of state data
+   */
+  public Map<String,Object> toMap() {
+    return new HashMap<String, Object>(stateMap);
   }
 
   public String dump() {

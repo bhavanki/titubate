@@ -16,6 +16,7 @@
  */
 package com.cloudera.titubate;
 
+import java.util.Map;
 import org.junit.Before;
 import org.junit.Test;
 import static org.junit.Assert.*;
@@ -55,5 +56,20 @@ public class StateTest {
         state.remove("test");
         assertFalse(state.has("test"));
         assertNull(state.get("test"));
+    }
+
+    @Test public void testToMap() {
+        state.set("test", "case");
+        state.set("ping", "pong");
+        Map<String, Object> m = state.toMap();
+        assertEquals(2, m.size());
+        assertEquals("case", m.get("test"));
+        assertEquals("pong", m.get("ping"));
+    }
+    @Test public void testCopyConstructor() {
+        state.set("test", "case");
+        state.set("ping", "pong");
+        State state2 = new State(state);
+        assertEquals(state.toMap(), state2.toMap());
     }
 }
