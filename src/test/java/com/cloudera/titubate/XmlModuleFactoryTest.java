@@ -157,11 +157,33 @@ public class XmlModuleFactoryTest {
         assertEquals(1, l.size());
         assertEquals(4, l.weight("END"));
     }
+    @Test public void testImplicitEND() throws Exception {
+        File f = getFile("/implicitend.xml");
+        xmf = new XmlModuleFactory(f);
+
+        Capture<Node> cn0 = new Capture<Node>();
+        expect(nk.hasNode("dummy.node0")).andReturn(false);
+        nk.addNode(eq("dummy.node0"), capture(cn0));
+        Capture<Node> cn1 = new Capture<Node>();
+        expect(nk.hasNode("dummy.node1")).andReturn(false);
+        nk.addNode(eq("dummy.node1"), capture(cn1));
+        replay(nk);
+        Module m = xmf.getModule(nk);
+        verify(nk);
+
+        Map<String, AdjList> adjMap = m.getAdjacencyMap();
+        assertEquals(2, adjMap.size());
+        AdjList l = adjMap.get("dummy.node0");
+        assertEquals(1, l.size());
+        assertEquals(1, l.weight("dummy.node1"));
+        l = adjMap.get("dummy.node1");
+        assertEquals(1, l.size());
+        assertEquals(1, l.weight("END"));
+    }
     // error conditions to test:
     // - repeated ID
     // - malformed alias
     // - malformed node property
     // - forbidden node properties
-    // - node with no edges
     // - edge with missing weight
 }

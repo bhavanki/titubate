@@ -158,7 +158,8 @@ public class XmlModuleFactory {
             adjMap.put(id, edges);
             NodeList edgelist = nodeEl.getElementsByTagName("edge");
             if (edgelist.getLength() == 0) {
-                throw new Exception("Node " + id + " has no edges");
+                // implicit single edge to END
+                edges.addEdge("END", 1);
             }
             for (int j = 0; j < edgelist.getLength(); j++) {
                 Element edgeEl = (Element) edgelist.item(j);

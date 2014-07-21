@@ -58,7 +58,7 @@ it is expected that it will.
 
 The check node always leads back to the node that generates the next prime.
 The completing node always leads to the special "END" node, which terminates the
-test.
+test. (See below.)
 
 All of the node IDs in the graph refer to Java classes under the package
 "com.cloudera.titubate.example". The package element allows for abbreviating
@@ -85,6 +85,13 @@ includes four node implementations, and you are free to add your own.
   has access to test data. The example above is composed of `CallableNodes`;
   the node IDs are the class names of the corresponding `CallableAction`s
   to run.
+
+### The END Node
+
+The special node with ID "END" is a dummy node for the end of the test. When
+crafting a test graph, use edges to "END" to terminate the test normally. If
+the only edge from a node leads to "END", it can be omitted (i.e., a node with
+no outgoing edges implicitly leads to "END").
 
 ## Environment, State, and Properties
 
