@@ -108,18 +108,15 @@ public class Module extends Node {
   private final String source;
   private Map<String,AdjList> adjMap;
   private Map<String, Properties> nodeProps;
-  private PrefixExpander prefixExpander;
   private String initNodeId;
   private Fixture fixture = null;
   private final NodeKeeper nodeKeeper;
-
+  
   Module(String source, Map<String, AdjList> adjMap, Map<String, Properties> nodeProps,
-         Map<String, String> prefixes, String initNodeId, Fixture fixture,
-         NodeKeeper nodeKeeper) {
+         String initNodeId, Fixture fixture, NodeKeeper nodeKeeper) {
     this.source = source;
     this.adjMap = adjMap;
     this.nodeProps = nodeProps;
-    prefixExpander = new PrefixExpander(prefixes);
     this.initNodeId = initNodeId;
     this.fixture = fixture;
     this.nodeKeeper = nodeKeeper;
@@ -130,6 +127,9 @@ public class Module extends Node {
   }
   Fixture getFixture() {
     return fixture;
+  }
+  NodeKeeper getNodeKeeper() {
+    return nodeKeeper;
   }
   String getInitNodeId() {
     return initNodeId;
@@ -216,7 +216,7 @@ public class Module extends Node {
       try {
         doVisit(nextNodeId, env, state);
       } catch (Exception e) {
-        LOG.debug("Exception occured at: " + System.currentTimeMillis());
+        LOG.debug("Exception occurred at: " + System.currentTimeMillis());
         LOG.debug("Properties for node: " + nextNodeId);
         LOG.debug(getProps(nextNodeId).toString());
         LOG.debug("Environment");
@@ -306,7 +306,7 @@ public class Module extends Node {
   }
 
   Node getNode(String id) {
-    return nodeKeeper.getNode(prefixExpander.expand(id));
+    return nodeKeeper.getNode(id);
   }
 
   Properties getProps(String nodeId) {

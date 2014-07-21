@@ -24,7 +24,6 @@ public class ModuleBuilder {
   private final String source;
   private Map<String,AdjList> adjMap;
   private Map<String, Properties> nodeProps;
-  private Map<String,String> prefixes;
   private Fixture fixture = null;
   private final NodeKeeper nodeKeeper;
 
@@ -44,10 +43,6 @@ public class ModuleBuilder {
     this.nodeProps = nodeProps;
     return this;
   }
-  public ModuleBuilder prefixes(Map<String,String> prefixes) {
-    this.prefixes = prefixes;
-    return this;
-  }
   public ModuleBuilder fixture(Fixture fixture) {
     this.fixture = fixture;
     return this;
@@ -55,8 +50,8 @@ public class ModuleBuilder {
 
   public Module build(String initNodeId) {
     verify();
-    return new Module(source, adjMap, nodeProps, prefixes, initNodeId,
-                      fixture, nodeKeeper);
+    return new Module(source, adjMap, nodeProps, initNodeId, fixture,
+                      nodeKeeper);
   }
 
   void verify() {

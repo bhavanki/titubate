@@ -49,17 +49,28 @@ public class XmlModuleFactory {
     }
 
     private final File xmlFile;
+    private final File moduleDir;
     private final DocumentBuilder db;
 
-    public XmlModuleFactory(File xmlFile) throws ParserConfigurationException {
+    private NodeFactory testNodeFactory;
+
+    public XmlModuleFactory(File xmlFile, File moduleDir)
+        throws ParserConfigurationException {
         this.xmlFile = xmlFile;
+        this.moduleDir = moduleDir;
 
         DocumentBuilderFactory dbf = DocumentBuilderFactory.newInstance();
         dbf.setSchema(moduleSchema);
         db = dbf.newDocumentBuilder();
+
+        testNodeFactory = null;
     }
 
-    public Module getModule(NodeKeeper nodeKeeper) throws Exception {
+    void setTestNodeFactory(NodeFactory testNodeFactory) {
+        this.testNodeFactory = testNodeFactory;
+    }
+
+    public Module getModule() throws Exception {
         Document d;
         try {
           d = db.parse(xmlFile);
@@ -103,7 +114,13 @@ public class XmlModuleFactory {
         nodeProps.put(Module.INIT_NODE_ID, initProps);
 
         // parse all nodes
-        NodeFactory nodeFactory = new NodeFactory(nodeKeeper, prefixExpander);
+        NodeFactory nodeFactory;
+        if (testNodeFactory != null) {
+            nodeFactory = testNodeFactory;
+        } else {
+            nodeFactory = new NodeFactory(prefixExpander, moduleDir);
+        }
+        NodeKeeper nodeKeeper = new NodeKeeper(nodeFactory);
         nodelist = d.getDocumentElement().getElementsByTagName("node");
         for (int i = 0; i < nodelist.getLength(); i++) {
             Element nodeEl = (Element) nodelist.item(i);
@@ -115,7 +132,13 @@ public class XmlModuleFactory {
                 throw new Exception("Module already contains node with ID " + id);
             }
             String src = nodeEl.getAttribute("src");
-            nodeFactory.createNode(id, src);
+            Node n;
+            if (src == null || src.isEmpty()) {
+                n = nodeFactory.createNode(id);
+            } else {
+                n = nodeFactory.createNode(src);
+            }
+            nodeKeeper.addNode(id, n);
 
             // set some attributes in properties for later use
             Properties props = new Properties();
@@ -131,9 +154,9 @@ public class XmlModuleFactory {
                     throw new Exception("Node " + id + " has alias with no identifying name");
                 }
                 String key = "alias." + propEl.getAttribute("name");
-                AliasNode aliasNode = (AliasNode)
-                    nodeFactory.createNode(key, null);
+                AliasNode aliasNode = (AliasNode) nodeFactory.createNode(key);
                 aliasNode.setTargetId(id);
+                nodeKeeper.addNode(key, aliasNode);
             }
 
             // parse properties of nodes
@@ -172,7 +195,7 @@ public class XmlModuleFactory {
             }
         }  // parsing nodes
 
-        return new Module(xmlFile.toString(), adjMap, nodeProps, prefixes, initNodeId,
+        return new Module(xmlFile.toString(), adjMap, nodeProps, initNodeId,
                           fixture, nodeKeeper);
     }
 }

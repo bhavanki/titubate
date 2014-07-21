@@ -6,6 +6,7 @@ import java.net.URISyntaxException;
 import java.util.Map;
 import java.util.Properties;
 import org.junit.Before;
+import org.junit.BeforeClass;
 import org.junit.Test;
 import static org.junit.Assert.*;
 import org.easymock.Capture;
@@ -15,25 +16,33 @@ public class XmlModuleFactoryTest {
     private static File getFile(String resource) throws URISyntaxException {
         return new File(XmlModuleFactoryTest.class.getResource(resource).toURI());
     }
-    private NodeKeeper nk;
+
+    private static File moduleDir;
+    @BeforeClass public static void setUpClass() throws URISyntaxException {
+        moduleDir =
+            new File(XmlModuleFactoryTest.class.getResource("/").toURI());
+    }
+
+    private NodeFactory nf;
     private XmlModuleFactory xmf;
-    @Before public void setUp() throws Exception {
-        nk = createMock(NodeKeeper.class);
+    @Before public void setUp() {
+        nf = createMock(NodeFactory.class);
     }
 
     @Test public void testMinimum() throws Exception {
         File f = getFile("/minimum.xml");
-        xmf = new XmlModuleFactory(f);
+        xmf = new XmlModuleFactory(f, moduleDir);
+        xmf.setTestNodeFactory(nf);
+        expect(nf.createNode("dummy.node0")).andReturn(createMock(Node.class));
+        expect(nf.createNode("dummy.node1")).andReturn(createMock(Node.class));
+        replay(nf);
 
-        Capture<Node> cn0 = new Capture<Node>();
-        expect(nk.hasNode("dummy.node0")).andReturn(false);
-        nk.addNode(eq("dummy.node0"), capture(cn0));
-        Capture<Node> cn1 = new Capture<Node>();
-        expect(nk.hasNode("dummy.node1")).andReturn(false);
-        nk.addNode(eq("dummy.node1"), capture(cn1));
-        replay(nk);
-        Module m = xmf.getModule(nk);
-        verify(nk);
+        Module m = xmf.getModule();
+        verify(nf);
+
+        NodeKeeper nk = m.getNodeKeeper();
+        assertTrue(nk.hasNode("dummy.node0"));
+        assertTrue(nk.hasNode("dummy.node1"));
 
         Map<String, AdjList> adjMap = m.getAdjacencyMap();
         assertEquals(2, adjMap.size());
@@ -47,16 +56,18 @@ public class XmlModuleFactoryTest {
 
     @Test public void testPrefixes() throws Exception {
         File f = getFile("/prefixes.xml");
-        xmf = new XmlModuleFactory(f);
+        xmf = new XmlModuleFactory(f, moduleDir);
+        xmf.setTestNodeFactory(nf);
+        expect(nf.createNode("dummy.node0")).andReturn(createMock(Node.class));
+        expect(nf.createNode("a.Node1")).andReturn(createMock(Node.class));
+        replay(nf);
 
-        Capture<Node> cn0 = new Capture<Node>();
-        expect(nk.hasNode("dummy.node0")).andReturn(false);
-        nk.addNode(eq("dummy.node0"), capture(cn0));
-        Node n1 = createMock(Node.class);
-        expect(nk.getNode("a.b.c.Node1")).andReturn(n1);
-        replay(nk);
-        Module m = xmf.getModule(nk);
-        verify(nk);
+        Module m = xmf.getModule();
+        verify(nf);
+
+        NodeKeeper nk = m.getNodeKeeper();
+        assertTrue(nk.hasNode("dummy.node0"));
+        assertTrue(nk.hasNode("a.Node1"));
 
         Map<String, AdjList> adjMap = m.getAdjacencyMap();
         assertEquals(2, adjMap.size());
@@ -70,14 +81,14 @@ public class XmlModuleFactoryTest {
 
     private Module readDummyNode0Module(String resource) throws Exception {
         File f = getFile(resource);
-        xmf = new XmlModuleFactory(f);
+        xmf = new XmlModuleFactory(f, moduleDir);
+        xmf.setTestNodeFactory(nf);
+        expect(nf.createNode("dummy.node0")).andReturn(createMock(Node.class));
+        replay(nf);
 
-        Capture<Node> cn0 = new Capture<Node>();
-        expect(nk.hasNode("dummy.node0")).andReturn(false);
-        nk.addNode(eq("dummy.node0"), capture(cn0));
-        replay(nk);
-        Module m = xmf.getModule(nk);
-        verify(nk);
+        Module m = xmf.getModule();
+        verify(nf);
+
         Map<String, AdjList> adjMap = m.getAdjacencyMap();
         assertEquals(1, adjMap.size());
         // etc.
@@ -108,41 +119,34 @@ public class XmlModuleFactoryTest {
     }
     @Test public void testAliases() throws Exception {
         File f = getFile("/alias.xml");
-        xmf = new XmlModuleFactory(f);
+        xmf = new XmlModuleFactory(f, moduleDir);
+        xmf.setTestNodeFactory(nf);
+        AliasNode an = createMock(AliasNode.class);
+        expect(nf.createNode("dummy.node0")).andReturn(createMock(Node.class));
+        expect(nf.createNode("alias.aka")).andReturn(an);
+        replay(nf);
+        an.setTargetId("dummy.node0");
+        replay(an);
 
-        Capture<Node> cn0 = new Capture<Node>();
-        expect(nk.hasNode("dummy.node0")).andReturn(false);
-        nk.addNode(eq("dummy.node0"), capture(cn0));
-        Capture<Node> cn1 = new Capture<Node>();
-        expect(nk.hasNode("alias.aka")).andReturn(false);
-        nk.addNode(eq("alias.aka"), capture(cn1));
-        replay(nk);
-        Module m = xmf.getModule(nk);
-        verify(nk);
+        Module m = xmf.getModule();
+        verify(nf);
+        verify(an);
+
         Map<String, AdjList> adjMap = m.getAdjacencyMap();
         assertEquals(1, adjMap.size());
         // etc.
-
-        Node n1 = cn1.getValue();
-        assertTrue(n1 instanceof AliasNode);
-        assertEquals("dummy.node0", ((AliasNode) n1).getTargetId());
     }
     @Test public void testMultipleEdges() throws Exception {
         File f = getFile("/multipleedges.xml");
-        xmf = new XmlModuleFactory(f);
+        xmf = new XmlModuleFactory(f, moduleDir);
+        xmf.setTestNodeFactory(nf);
+        expect(nf.createNode("dummy.node0")).andReturn(createMock(Node.class));
+        expect(nf.createNode("dummy.node1a")).andReturn(createMock(Node.class));
+        expect(nf.createNode("dummy.node1b")).andReturn(createMock(Node.class));
+        replay(nf);
 
-        Capture<Node> cn0 = new Capture<Node>();
-        expect(nk.hasNode("dummy.node0")).andReturn(false);
-        nk.addNode(eq("dummy.node0"), capture(cn0));
-        Capture<Node> cn1a = new Capture<Node>();
-        expect(nk.hasNode("dummy.node1a")).andReturn(false);
-        nk.addNode(eq("dummy.node1a"), capture(cn0));
-        Capture<Node> cn1b = new Capture<Node>();
-        expect(nk.hasNode("dummy.node1b")).andReturn(false);
-        nk.addNode(eq("dummy.node1b"), capture(cn0));
-        replay(nk);
-        Module m = xmf.getModule(nk);
-        verify(nk);
+        Module m = xmf.getModule();
+        verify(nf);
 
         Map<String, AdjList> adjMap = m.getAdjacencyMap();
         assertEquals(3, adjMap.size());
@@ -159,17 +163,14 @@ public class XmlModuleFactoryTest {
     }
     @Test public void testImplicitEND() throws Exception {
         File f = getFile("/implicitend.xml");
-        xmf = new XmlModuleFactory(f);
+        xmf = new XmlModuleFactory(f, moduleDir);
+        xmf.setTestNodeFactory(nf);
+        expect(nf.createNode("dummy.node0")).andReturn(createMock(Node.class));
+        expect(nf.createNode("dummy.node1")).andReturn(createMock(Node.class));
+        replay(nf);
 
-        Capture<Node> cn0 = new Capture<Node>();
-        expect(nk.hasNode("dummy.node0")).andReturn(false);
-        nk.addNode(eq("dummy.node0"), capture(cn0));
-        Capture<Node> cn1 = new Capture<Node>();
-        expect(nk.hasNode("dummy.node1")).andReturn(false);
-        nk.addNode(eq("dummy.node1"), capture(cn1));
-        replay(nk);
-        Module m = xmf.getModule(nk);
-        verify(nk);
+        Module m = xmf.getModule();
+        verify(nf);
 
         Map<String, AdjList> adjMap = m.getAdjacencyMap();
         assertEquals(2, adjMap.size());

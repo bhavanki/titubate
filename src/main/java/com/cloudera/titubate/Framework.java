@@ -50,8 +50,8 @@ public class Framework {
    * @param state initial/current test state
    */
   public void run(String graph, Environment env, State state) {
+    Node node = nodeKeeper.getNode(graph);
     try {
-      Node node = nodeKeeper.getNode(graph);
       node.visit(env, state, new Properties());  // no incoming properties
     } catch (NodeException e) {
       LOG.error("Error during random walk", e);
@@ -96,7 +96,8 @@ public class Framework {
     }
   }
 
-  static Environment loadEnvironment(File f, String testId) throws IOException {
+  static Environment loadEnvironment(Opts opts) throws IOException {
+    File f = new File(opts.configDir, opts.configFileName);
     Properties props = new Properties();
     FileInputStream fis = null;
     try {
@@ -108,6 +109,7 @@ public class Framework {
       }
     }
 
+    String testId = opts.testId;
     props.setProperty(Environment.KEY_TEST_ID,
                       (testId != null ? testId :
                        UUID.randomUUID().toString()));
@@ -121,10 +123,10 @@ public class Framework {
       return;
     }
 
-    Environment env =
-      loadEnvironment(new File(opts.configDir, opts.configFileName), opts.testId);
-
-    NodeKeeper nodeKeeper = new NodeKeeper(new File(opts.configDir, MODULE_DIR));
+    Environment env = loadEnvironment(opts);
+    NodeFactory nodeFactory =
+      new NodeFactory(null, new File(opts.configDir, MODULE_DIR));
+    NodeKeeper nodeKeeper = new NodeKeeper(nodeFactory);
     new Framework(nodeKeeper).run(opts.graph, env);
   }
 }

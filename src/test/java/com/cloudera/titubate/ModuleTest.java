@@ -49,10 +49,8 @@ public class ModuleTest {
         Node n = createMock(Node.class);
         expect(nk.getNode("abcde.f")).andReturn(n);
         replay(nk);
-        Map<String,String> prefixes = new HashMap<String,String>();
-        prefixes.put("a", "abcde");
-        Module m = mb.prefixes(prefixes).build(INIT_NODE_ID);
-        assertSame(n, m.getNode("a.f"));
+        Module m = mb.build(INIT_NODE_ID);
+        assertSame(n, m.getNode("abcde.f"));
     }
     @Test public void testGetProps() {
         Module m = mb.build(INIT_NODE_ID);

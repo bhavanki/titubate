@@ -59,15 +59,22 @@ public class FrameworkTest {
     }
 
     @Test public void testLoadEnvironment() throws Exception {
+        Opts opts = new Opts();
         File f = new File(FrameworkTest.class.getResource("/env1.properties").toURI());
-        Environment env = Framework.loadEnvironment(f, "mytest");
+        opts.configDir = f.getParentFile().getAbsolutePath();
+        opts.configFileName = "env1.properties";
+        opts.testId = "mytest";
+        Environment env = Framework.loadEnvironment(opts);
         assertEquals("bar", env.get("foo"));
         assertEquals("that", env.get("this"));
         assertEquals("mytest", env.get(Environment.KEY_TEST_ID));
     }
-    @Test public void testLoadEnvironment_TestId() throws Exception {
+    @Test public void testLoadEnvironment_Minimal() throws Exception {
+        Opts opts = new Opts();
         File f = new File(FrameworkTest.class.getResource("/env1.properties").toURI());
-        Environment env = Framework.loadEnvironment(f, null);
+        opts.configDir = f.getParentFile().getAbsolutePath();
+        opts.configFileName = "env1.properties";
+        Environment env = Framework.loadEnvironment(opts);
         assertEquals("bar", env.get("foo"));
         assertEquals("that", env.get("this"));
         String testId = env.get(Environment.KEY_TEST_ID);

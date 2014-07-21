@@ -16,48 +16,30 @@
  */
 package com.cloudera.titubate;
 
-import java.io.File;
 import org.junit.Before;
 import org.junit.BeforeClass;
 import org.junit.Test;
+import static org.easymock.EasyMock.*;
 import static org.junit.Assert.*;
 
 public class NodeKeeperTest {
-    public static class NodeKeeperTestAction extends CallableAction {
-        @Override
-        public Void call() {
-            return null;
-        }
-    }
-    private static File moduleDir;
-    @BeforeClass public static void setUpClass() throws Exception {
-        moduleDir = new File(NodeKeeperTest.class.getResource("/").toURI());
-    }
+    private NodeFactory nf;
     private NodeKeeper nk;
     @Before public void setUp() throws Exception {
-        nk = new NodeKeeper(moduleDir);
+        nf = createMock(NodeFactory.class);
+        nk = new NodeKeeper(nf);
     }
-    @Test public void testEND() {
-        assertFalse(nk.hasNode("END"));
-        Node n = nk.getNode("END");
-        assertTrue(n instanceof DummyNode);
-        assertEquals("END", n.toString());
-        assertTrue(nk.hasNode("END"));
+    @Test public void testGet() {
+        String id = "id";
+        Node n = createMock(Node.class);
+        expect(nf.createNode(id)).andReturn(n);
+        replay(nf);
 
-        assertSame(n, nk.getNode("END"));
+        Node n1 = nk.getNode(id);
+        assertSame(n, n1);
+        Node n2 = nk.getNode(id);
+        assertSame(n, n2);
     }
-    @Test public void testCallableNode() {
-        String actionClassName = NodeKeeperTestAction.class.getName();
-        assertFalse(nk.hasNode(actionClassName));
-        Node n = nk.getNode(actionClassName);
-        assertTrue(n instanceof CallableNode);
-        assertEquals(actionClassName, n.toString());
-        assertTrue(nk.hasNode(actionClassName));
-
-        assertSame(n, nk.getNode(actionClassName));
-    }
-    // TBD - XML
-
     @Test public void testHasAndAdd() {
         Node n = new DummyNode("test");
         assertFalse(nk.hasNode("test"));

@@ -16,68 +16,40 @@
  */
 package com.cloudera.titubate;
 
-import java.io.File;
 import java.util.Map;
 
 /**
- * A keeper of {@link Node}s, indexed by ID. This class is not thread-safe.
+ * A keeper of {@link Node}s, indexed by ID; essentially a wrapper of a
+ * {@link NodeFactory}. This class is not thread-safe.
  */
 public class NodeKeeper {
     private final Map<String,Node> nodes = new java.util.HashMap<String,Node>();
-    private final File moduleDir;
+    private final NodeFactory nodeFactory;
 
     /**
      * Creates a new keeper.
      *
-     * @param moduleDir directory where XML module definitions reside
+     * @param nodeFactory node factory to use when creating new nodes
      */
-    public NodeKeeper(File moduleDir) {
-        this.moduleDir = moduleDir;
+    public NodeKeeper(NodeFactory nodeFactory) {
+        this.nodeFactory = nodeFactory;
     }
 
     /**
-     * Gets a node. If it does not already exist, it is created. The following
-     * sorts of node IDs are supported for node creation.<p>
-     *
-     * <ul>
-     * <li><i>*</i>.xml - file name for an XML module definition</li>
-     * <li>END - a {@link DummyNode} with name "END"</li>
-     * <li>anything else - the name of a {@link CallableAction} implementation
-     * with a no-argument constructor</li>
-     * </ul>
+     * Gets a node. If it does not already exist, it is created using this
+     * keeper's node factory.
      *
      * @param id node ID
      * @return node specified by id
+     * @throws NodeCreationException if a new node needed to be created, but
+     * there was a problem building it
      */
     public Node getNode(String id) {
         if (nodes.containsKey(id)) {
             return nodes.get(id);
         }
 
-        Node node;
-        if (id.endsWith(".xml")) {
-            try {
-                node = new XmlModuleFactory(new File(moduleDir, id))
-                    .getModule(this);
-            } catch (Exception e) {  // FIXME
-                throw new NodeCreationException("Failed to load module " + id, e);
-            }
-        } else if (id.equalsIgnoreCase("END")) {
-            node = new DummyNode(id);
-        } else {
-            Object idObject;
-            try {
-                idObject = Class.forName(id).newInstance();
-            } catch (Exception e) {  // FIXME
-                throw new NodeCreationException("Failed to create node object of class " +
-                                   id, e);
-            }
-            if (idObject instanceof CallableAction) {
-                node = new CallableNode((CallableAction) idObject);
-            } else {
-                throw new NodeCreationException("Unsupported node object type " + id);
-            }
-        }
+        Node node = nodeFactory.createNode(id);
         nodes.put(id, node);
         return node;
     }
