@@ -43,7 +43,7 @@
     <xsd:sequence>
       <xsd:element name="alias" type="AliasType" minOccurs="0" maxOccurs="unbounded"/>
       <xsd:element name="property" type="PropertyType" minOccurs="0" maxOccurs="unbounded"/>
-      <xsd:element name="edge" type="EdgeType" minOccurs="1" maxOccurs="unbounded"/>
+      <xsd:element name="edge" type="EdgeType" minOccurs="0" maxOccurs="unbounded"/>
     </xsd:sequence>
     <xsd:attribute name="id" type="xsd:string"/>
     <xsd:attribute name="src" type="xsd:string"/>
